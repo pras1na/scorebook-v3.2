@@ -32,6 +32,9 @@
         body.light-mode .navbar { background: rgba(255,255,255,0.95); }
         .nav-tabs { display: flex; justify-content: center; flex: 1; }
         .navbar button.tab-btn { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 1em; font-weight: 700; text-transform: uppercase; padding: 14px 24px; cursor: pointer; position: relative; transition: color 0.2s; }
+        .go-live-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-display); font-size: 0.85em; font-weight: 700; text-transform: uppercase; padding: 8px 14px; border-radius: var(--radius); cursor: pointer; margin-right: 8px; transition: 0.15s; }
+        .go-live-btn.is-live { background: rgba(255,68,85,0.12); border-color: var(--danger); color: var(--danger); animation: liveBlink 1.6s ease-in-out infinite; }
+        @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
         .navbar button.tab-btn::after { content: ''; position: absolute; bottom: 0; left: 50%; right: 50%; height: 2px; background: var(--accent); transition: left 0.2s, right 0.2s; }
         .navbar button.tab-btn.active { color: var(--accent); }
         .navbar button.tab-btn.active::after { left: 20%; right: 20%; }
@@ -211,6 +214,24 @@
         </div>
     </div>
 
+    <div id="goLiveModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content" style="text-align:center;">
+            <div class="modal-title" id="goLiveTitle">📡 Match is Live</div>
+            <p style="color:var(--text-muted); font-size:0.9em; margin-bottom:16px;">Send the Match ID and PIN to parents <b>separately</b> — e.g. the ID in your group chat, the PIN by text — so the link alone isn't enough on its own.</p>
+            <div style="margin-bottom:14px;">
+                <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Match ID</div>
+                <div id="liveMatchIdDisplay" style="font-family:monospace; font-size:1.3em; font-weight:800; background:var(--surface3); padding:10px; border-radius:8px; letter-spacing:0.05em; word-break:break-all;"></div>
+            </div>
+            <div style="margin-bottom:20px;">
+                <div style="font-size:0.75em; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">PIN</div>
+                <div id="liveMatchPinDisplay" style="font-family:monospace; font-size:1.3em; font-weight:800; background:var(--surface3); padding:10px; border-radius:8px; letter-spacing:0.15em;"></div>
+            </div>
+            <p style="color:var(--text-dim); font-size:0.8em; margin-bottom:20px;">The spectator viewing page isn't ready yet — this confirms your match is syncing live. The viewer will use this same ID and PIN once it's built.</p>
+            <button id="btnStopLive" class="modal-btn danger">Stop Sharing</button>
+            <button id="btnCloseLiveModal" class="modal-btn confirm">Done</button>
+        </div>
+    </div>
+
     <div id="overSummaryModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="modal-content" style="text-align:center;">
             <div class="modal-title" id="overSummaryTitle">Over Complete</div>
@@ -375,6 +396,7 @@
             <button id="tabLog" class="tab-btn">Log</button>
             <button id="tabScorecard" class="tab-btn">Scorecard</button>
         </div>
+        <button id="btnGoLive" class="go-live-btn">📡 Go Live</button>
         <button id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme">☀️</button>
     </nav>
 
@@ -618,6 +640,7 @@ let match = {
     wagonEnabled: true, enforceLimits: true, enableFreeHit: true, maxOversPerBowler: 4, maxWickets: 10,
     queue: { newBatter: false, newBowler: false, overSummaryPending: false, ignoreInningsPrompt: false, ignoreMatchPrompt: false },
     pendingOverSummary: null,
+    isLive: false, liveShareId: null, liveSharePin: null,
     innings: 1, target: null, targetOvers: 20,
     runs: 0, wickets: 0, totalLegalBalls: 0,
     battingTeam: 'A', fieldingTeam: 'B',
@@ -761,6 +784,7 @@ function startMatch() {
 
     updateDashboard(); renderOverTracker(); renderLog(); updateControlStates();
     if (match.wagonEnabled) { drawWagonCanvas(); updateWagonQueueUI(); }
+    updateGoLiveButton();
     openSelectionModal('striker');
     syncToCloud();
 }
@@ -801,7 +825,7 @@ function switchTab(screenId, btnId) {
 // ═══════════════════════════════════════════════════════════
 //  AUTO BACKUP & CLOUD SYNC ENGINE
 // ═══════════════════════════════════════════════════════════
-const CLOUD_SYNC_URL = "https://script.google.com/macros/s/AKfycbzqOL9JFxz6K_WjbEF-CZMhqlyFp9RRAYDW0MnE6AkCiKTdypyzIRusVleJgM7r-9Zr/exec";
+const CLOUD_SYNC_URL = "https://script.google.com/macros/s/AKfycbzgSi6PDk9TGx7uExn2aynoqOX7Don-GxJi5ud4cfkI-IvKc3GDxQTL-reuxWyMjUw/exec";
 
 function syncToCloud() {
     // Local autosave: this is what lets the "Resume unfinished match?"
@@ -809,6 +833,11 @@ function syncToCloud() {
     try { localStorage.setItem('live_match_backup', JSON.stringify(match)); }
     catch (e) { console.error('Local autosave failed:', e); }
 
+    // Cloud sync only happens once the scorer has explicitly chosen to
+    // Go Live — otherwise every match would broadcast by default, which
+    // isn't what was agreed. The payload shape ({matchId, pin, data})
+    // matches what the Apps Script backend expects.
+    if (!match.isLive || !match.liveShareId) return;
     if (CLOUD_SYNC_URL.includes("YOUR_UNIQUE_ID")) return;
 
     // Wrapped defensively: this function runs in the middle of every
@@ -821,13 +850,63 @@ function syncToCloud() {
             method: 'POST',
             redirect: 'follow',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(match)
+            body: JSON.stringify({ matchId: match.liveShareId, pin: match.liveSharePin, data: match })
         })
         .then(response => console.log('Live sync successful'))
         .catch(err => console.error('Live sync failed:', err));
     } catch (e) {
         console.error('Live sync failed to start:', e);
     }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GO LIVE (spectator sharing)
+// ═══════════════════════════════════════════════════════════
+function generateMatchId() {
+    // Short, unguessable-enough token for a link; not a secret on its
+    // own — the PIN is what actually gates access to the data.
+    return Math.random().toString(36).slice(2, 10);
+}
+
+function generatePin() {
+    // 4 digits: easy to read aloud or text separately from the link,
+    // consistent with what we tested against the backend already.
+    return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function updateGoLiveButton() {
+    const btn = $('btnGoLive');
+    if (!btn) return;
+    if (match.isLive) {
+        btn.textContent = '🔴 LIVE';
+        btn.classList.add('is-live');
+    } else {
+        btn.textContent = '📡 Go Live';
+        btn.classList.remove('is-live');
+    }
+}
+
+function openGoLiveModal() {
+    if (!match.isLive) {
+        match.isLive = true;
+        match.liveShareId = generateMatchId();
+        match.liveSharePin = generatePin();
+        syncToCloud();
+    }
+    $('liveMatchIdDisplay').textContent = match.liveShareId;
+    $('liveMatchPinDisplay').textContent = match.liveSharePin;
+    $('goLiveTitle').textContent = '📡 Match is Live';
+    updateGoLiveButton();
+    $('goLiveModal').classList.remove('hidden');
+}
+
+function stopLiveSharing() {
+    if (!confirm('Stop sharing this match live? Anyone watching will stop receiving updates.')) return;
+    match.isLive = false;
+    updateGoLiveButton();
+    $('goLiveModal').classList.add('hidden');
+    showToast('Live sharing stopped.');
+    syncToCloud(); // still autosaves locally even though cloud posting is now skipped
 }
 
 function triggerAutoDownload(label) {
@@ -1842,6 +1921,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (!match.queue) match.queue = { newBatter: false, newBowler: false, overSummaryPending: false, ignoreInningsPrompt: false, ignoreMatchPrompt: false };
                 if (match.queue.overSummaryPending === undefined) match.queue.overSummaryPending = false;
                 if (match.pendingOverSummary === undefined) match.pendingOverSummary = null;
+                if (match.isLive === undefined) match.isLive = false;
+                if (match.liveShareId === undefined) match.liveShareId = null;
+                if (match.liveSharePin === undefined) match.liveSharePin = null;
                 if (typeof match.freeHit !== 'boolean') match.freeHit = false;
                 if (typeof match.enableFreeHit !== 'boolean') match.enableFreeHit = true;
                 if (match.maxWickets === undefined) match.maxWickets = 10;
@@ -1856,6 +1938,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
                 updateDashboard(); renderOverTracker(); renderLog(); updateControlStates();
                 if (match.wagonEnabled) { drawWagonCanvas(); updateWagonQueueUI(); }
+                updateGoLiveButton();
                 if (match.active.strikerIdx === null) openSelectionModal('striker'); else if (match.active.nonStrikerIdx === null) openSelectionModal('nonStriker'); else if (match.active.bowlerIdx === null) openSelectionModal('bowler');
                 showToast('Match resumed — undo history starts fresh');
             } catch (e) { localStorage.removeItem('live_match_backup'); }
@@ -1891,6 +1974,9 @@ function wireUpEvents() {
 
     $('btnConfirmAction').addEventListener('click', () => {$('confirmModal').classList.add('hidden'); const cb = confirmActionCallback; confirmActionCallback = null; confirmCancelCallback = null; if (cb) cb(); });
     $('btnConfirmOverSummary').addEventListener('click', confirmOverSummary);
+    $('btnGoLive').addEventListener('click', openGoLiveModal);
+    $('btnStopLive').addEventListener('click', stopLiveSharing);
+    $('btnCloseLiveModal').addEventListener('click', () => $('goLiveModal').classList.add('hidden'));
     $('btnCancelAction').addEventListener('click', () => {$('confirmModal').classList.add('hidden'); const cb = confirmCancelCallback; confirmActionCallback = null; confirmCancelCallback = null; if (cb) cb(); });
 
     $('btnOpenPrintMenu').addEventListener('click', () => { populatePrintExtras();$('printConfigModal').classList.remove('hidden'); });
