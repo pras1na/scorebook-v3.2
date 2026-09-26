@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Digital Scorebook v3.1</title>
+    <title>Digital Scorebook v3.8</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -31,16 +31,45 @@
         .navbar { position: sticky; top: 0; z-index: 100; background: rgba(10,14,19,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
         body.light-mode .navbar { background: rgba(255,255,255,0.95); }
         .nav-tabs { display: flex; justify-content: center; flex: 1; }
-        .navbar button.tab-btn { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 1em; font-weight: 700; text-transform: uppercase; padding: 14px 24px; cursor: pointer; position: relative; transition: color 0.2s; }
+        .navbar button.tab-btn { background: none; border: none; color: var(--text-muted); font-family: var(--font-display); font-size: 1em; font-weight: 700; text-transform: uppercase; padding: 11px 20px; cursor: pointer; position: relative; transition: color 0.2s; }
         .go-live-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); font-family: var(--font-display); font-size: 0.85em; font-weight: 700; text-transform: uppercase; padding: 8px 14px; border-radius: var(--radius); cursor: pointer; margin-right: 8px; transition: 0.15s; }
         .go-live-btn.is-live { background: rgba(255,68,85,0.12); border-color: var(--danger); color: var(--danger); animation: liveBlink 1.6s ease-in-out infinite; }
         @keyframes liveBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+        .corrections-btn { background: none; border: 1px solid var(--border); color: var(--text-dim); font-size: 1em; padding: 7px 11px; border-radius: var(--radius); cursor: pointer; margin-right: 8px; opacity: 0.7; }
+        .corrections-btn:hover { opacity: 1; color: var(--text-muted); }
+
+        .corrections-content { text-align: left; max-height: 85vh; overflow-y: auto; }
+        .corrections-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .corrections-close { background: none; border: none; color: var(--text-muted); font-size: 1.3em; cursor: pointer; padding: 4px 8px; }
+        .corrections-intro { color: var(--text-muted); font-size: 0.85em; margin-bottom: 18px; line-height: 1.4; }
+        .correction-option { display: flex; gap: 14px; align-items: center; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; cursor: pointer; transition: 0.15s; }
+        .correction-option:hover { border-color: var(--accent); }
+        .co-icon { font-size: 1.6em; }
+        .co-title { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: 0.95em; }
+        .co-desc { color: var(--text-muted); font-size: 0.8em; margin-top: 2px; }
+        .corrections-history-label { font-family: var(--font-display); font-size: 0.85em; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 20px 0 8px; border-top: 1px solid var(--border); padding-top: 16px; }
+        .corrections-history-list { max-height: 160px; overflow-y: auto; }
+        .corrections-history-empty { color: var(--text-dim); font-size: 0.85em; text-align: center; padding: 12px 0; }
+        .corrections-history-item { background: var(--surface2); border-left: 3px solid var(--accent); border-radius: 4px; padding: 8px 10px; margin-bottom: 6px; font-size: 0.82em; }
+        .corrections-history-item .chi-time { color: var(--text-dim); font-size: 0.85em; display: block; margin-top: 2px; }
+
+        .correction-preview { background: var(--surface3); border-radius: var(--radius); padding: 10px 12px; font-size: 0.85em; color: var(--text-muted); margin-top: 14px; min-height: 1.2em; }
+        .correction-warning { background: rgba(255,179,0,0.1); border: 1px solid var(--warn); color: var(--warn); border-radius: var(--radius); padding: 10px 12px; font-size: 0.82em; margin-top: 10px; line-height: 1.4; }
+        .delivery-list-label { font-family: var(--font-display); font-size: 0.8em; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 16px 0 6px; }
+        .delivery-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 4px; }
+        .delivery-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 0.85em; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .delivery-row:last-child { border-bottom: none; }
+        .delivery-row:hover { background: var(--surface2); }
+        .delivery-row.selected { background: rgba(0,229,176,0.08); }
+        .delivery-row input[type="checkbox"], .delivery-row input[type="radio"] { width: 17px; height: 17px; flex-shrink: 0; }
+        .delivery-row .dr-desc { flex: 1; }
+        .delivery-row .dr-tag { color: var(--text-muted); font-family: var(--font-display); font-size: 0.85em; }
         .navbar button.tab-btn::after { content: ''; position: absolute; bottom: 0; left: 50%; right: 50%; height: 2px; background: var(--accent); transition: left 0.2s, right 0.2s; }
         .navbar button.tab-btn.active { color: var(--accent); }
         .navbar button.tab-btn.active::after { left: 20%; right: 20%; }
         .theme-toggle { background: var(--surface2); border: 1px solid var(--border); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1em; transition: all 0.2s; }
         
-        .container { max-width: 640px; margin: 0 auto; padding: 20px 16px; }
+        .container { max-width: 640px; margin: 0 auto; padding: 12px 16px; }
         .container.expanded { max-width: 1100px; }
         .app-layout { display: flex; gap: 16px; align-items: flex-start; }
         .score-col { flex: 1; min-width: 0; }
@@ -75,19 +104,19 @@
         .btn-primary:active { transform: scale(0.98); }
 
         /* Dashboard & Score Header */
-        .score-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 12px; }
-        .score-header-top { display: flex; align-items: stretch; padding: 20px 16px; gap: 10px; }
+        .score-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; }
+        .score-header-top { display: flex; align-items: stretch; padding: 12px 16px; gap: 10px; }
         .team-block { flex: 1; text-align: center; font-family: var(--font-display); font-size: 0.9em; font-weight: 700; text-transform: uppercase; color: var(--text-muted); display: flex; flex-direction: column; justify-content: center; padding: 6px; border-radius: 8px; transition: all 0.3s; }
         .team-block.active-team { color: var(--accent); background: var(--accent-glow); }
         .center-block { flex: 2; text-align: center; }
-        .main-score { font-family: var(--font-display); font-size: 3.8em; font-weight: 800; line-height: 1; }
+        .main-score { font-family: var(--font-display); font-size: 3.2em; font-weight: 800; line-height: 1; }
         .overs-display { font-family: var(--font-display); font-size: 1em; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
         .run-rates-display { font-size: 0.8em; color: var(--text-dim); margin-top: 4px; font-weight: 600; font-family: var(--font-display); }
         .partnership-display { font-size: 0.8em; color: var(--text-dim); margin-top: 4px; font-weight: 600; font-family: var(--font-display); }
         .target-display { font-family: var(--font-display); font-size: 0.95em; font-weight: 700; color: var(--warn); margin-top: 4px; }
         .free-hit-badge { display: inline-block; font-family: var(--font-display); font-size: 0.85em; font-weight: 800; letter-spacing: 0.05em; color: var(--bg); background: var(--warn); padding: 3px 10px; border-radius: 20px; margin-top: 6px; animation: pulse 1.4s infinite; }
         
-        .over-tracker { background: var(--surface2); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .over-tracker { background: var(--surface2); border-top: 1px solid var(--border); padding: 7px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .over-tracker-label { font-family: var(--font-display); font-size: 0.75em; font-weight: 700; text-transform: uppercase; color: var(--text-dim); white-space: nowrap; }
         .over-balls { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
         .ball-pip { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.85em; font-weight: 700; background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); position: relative; }
@@ -99,12 +128,12 @@
         .pip-ind.pending { background: var(--warn); }
         .pip-ind.mapped { background: var(--accent); }
 
-        .dashboard-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 12px; overflow: hidden; }
-        .section-header { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface2); gap: 8px; }
+        .dashboard-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; overflow: hidden; }
+        .section-header { padding: 7px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--surface2); gap: 8px; }
         .section-header-actions { display: flex; gap: 6px; }
         .section-title { font-family: var(--font-display); font-size: 0.75em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
         
-        .player-row { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .player-row { padding: 8px 16px; border-bottom: 1px solid var(--border); }
         .player-row:last-child { border-bottom: none; }
         #strikerRow { background: linear-gradient(90deg, rgba(0,229,176,0.06) 0%, transparent 100%); border-left: 3px solid var(--accent); }
         .player-main-line { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
@@ -114,9 +143,9 @@
         .player-sub-line { font-size: 0.8em; color: var(--text-muted); font-family: var(--font-display); display: flex; gap: 14px; }
         .sub-stat span { color: var(--text-dim); font-size: 0.9em; margin-right: 2px; }
 
-        .control-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 12px; }
-        .control-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .btn-run { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--font-display); font-size: 1.5em; font-weight: 800; padding: 16px 8px; border-radius: var(--radius); cursor: pointer; transition: 0.15s; }
+        .control-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px; margin-bottom: 8px; }
+        .control-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .btn-run { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: var(--font-display); font-size: 1.5em; font-weight: 800; padding: 11px 8px; border-radius: var(--radius); cursor: pointer; transition: 0.15s; }
         .btn-run:hover:not(:disabled) { background: var(--surface3); }
         .btn-run:active:not(:disabled) { transform: scale(0.95); }
         .btn-run:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -124,12 +153,13 @@
         .btn-run.six { color: var(--accent2); border-color: rgba(0,153,255,0.3); }
         .btn-run.btn-extra { background: rgba(255,179,0,0.08); color: var(--warn); border-color: rgba(255,179,0,0.3); font-size: 1em; }
         .btn-run.btn-wicket { grid-column: span 2; background: rgba(255,68,85,0.1); color: var(--danger); border-color: rgba(255,68,85,0.3); font-size: 1em; }
-        .control-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+        .control-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; }
         .btn-action { padding: 11px; border: 1px solid var(--border); border-radius: var(--radius); font-family: var(--font-display); font-size: 0.8em; font-weight: 700; text-transform: uppercase; cursor: pointer; background: var(--surface2); color: var(--text-muted); transition: 0.15s; }
         .btn-action.warn-btn { color: var(--warn); border-color: rgba(255,179,0,0.3); }
         .btn-action.info-btn { color: var(--accent2); border-color: rgba(0,153,255,0.3); }
         .btn-small-action { background: var(--surface3); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-family: var(--font-display); font-size: 0.75em; font-weight: 700; text-transform: uppercase; color: var(--text-muted); cursor: pointer; }
-        .shortcut-hint { text-align: center; font-family: var(--font-display); font-size: 0.7em; color: var(--text-dim); margin-top: 10px; letter-spacing: 0.03em; }
+        .shortcut-hint { text-align: center; font-family: var(--font-display); font-size: 0.7em; color: var(--text-dim); margin-top: 6px; letter-spacing: 0.03em; }
+        @media (max-height: 750px) { .shortcut-hint { display: none; } }
 
         /* Modals & Helpers */
         .stepper-container { display: flex; align-items: stretch; gap: 8px; margin-bottom: 16px; }
@@ -229,6 +259,89 @@
             <p style="color:var(--text-dim); font-size:0.8em; margin-bottom:20px;">The spectator viewing page isn't ready yet — this confirms your match is syncing live. The viewer will use this same ID and PIN once it's built.</p>
             <button id="btnStopLive" class="modal-btn danger">Stop Sharing</button>
             <button id="btnCloseLiveModal" class="modal-btn confirm">Done</button>
+        </div>
+    </div>
+
+    <div id="correctionsModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content corrections-content">
+            <div class="corrections-header">
+                <div class="modal-title" style="margin:0;">🛠 Corrections</div>
+                <button id="btnCloseCorrections" class="corrections-close">✕</button>
+            </div>
+            <p class="corrections-intro">Fix mistakes made during scoring. Every correction here is logged below and can be undone like any other action.</p>
+
+            <div id="correctionsMenu">
+                <div class="correction-option" id="optRename">
+                    <div class="co-icon">✏️</div>
+                    <div class="co-text"><div class="co-title">Rename a Player</div><div class="co-desc">Fix a typo or wrong spelling — same person, whole match</div></div>
+                </div>
+                <div class="correction-option" id="optReassign">
+                    <div class="co-icon">🔀</div>
+                    <div class="co-text"><div class="co-title">Reassign Deliveries</div><div class="co-desc">Wrong batter or bowler credited for a stretch of play</div></div>
+                </div>
+                <div class="correction-option" id="optDismissal">
+                    <div class="co-icon">🎯</div>
+                    <div class="co-text"><div class="co-title">Fix a Dismissal</div><div class="co-desc">Wrong player, type, or fielder credited for one wicket</div></div>
+                </div>
+            </div>
+
+            <div class="corrections-history-label">Edit History</div>
+            <div id="correctionsHistoryList" class="corrections-history-list">
+                <div class="corrections-history-empty">No corrections made yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="renameToolModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <div class="modal-title">✏️ Rename a Player</div>
+            <label>Team</label>
+            <select id="rcTeamSelect"><option value="A">Team A</option><option value="B">Team B</option></select>
+            <label>Player</label>
+            <select id="rcPlayerSelect"></select>
+            <label>New Name</label>
+            <input type="text" id="rcNewName" placeholder="Corrected name">
+            <div id="rcPreview" class="correction-preview"></div>
+            <div id="rcWarning" class="correction-warning hidden"></div>
+            <button id="btnApplyRename" class="modal-btn confirm">Apply Rename</button>
+            <button id="btnCancelRename" class="modal-btn cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div id="reassignToolModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-height:88vh; overflow-y:auto;">
+            <div class="modal-title">🔀 Reassign Deliveries</div>
+            <label>Role</label>
+            <select id="raRoleSelect"><option value="batter">Batter (individual balls)</option><option value="bowler">Bowler (whole overs)</option></select>
+            <label>Team</label>
+            <select id="raTeamSelect"><option value="A">Team A</option><option value="B">Team B</option></select>
+            <label>Currently Credited To</label>
+            <select id="raFromPlayerSelect"></select>
+            <div id="raDeliveryLabel" class="delivery-list-label"></div>
+            <div id="raDeliveryList" class="delivery-list"></div>
+            <label>Move To</label>
+            <select id="raToPlayerSelect"></select>
+            <div id="raPreview" class="correction-preview"></div>
+            <button id="btnApplyReassign" class="modal-btn confirm">Apply Reassignment</button>
+            <button id="btnCancelReassign" class="modal-btn cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div id="dismissalToolModal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-height:88vh; overflow-y:auto;">
+            <div class="modal-title">🎯 Fix a Dismissal</div>
+            <div id="dfWicketList" class="delivery-list"></div>
+            <div id="dfEditArea" class="hidden">
+                <label>Dismissal Type</label>
+                <select id="dfTypeSelect"></select>
+                <label>Credited To (who's actually out)</label>
+                <select id="dfOutPlayerSelect"></select>
+                <label>Fielder / Extra Detail (optional)</label>
+                <input type="text" id="dfFielderInput" placeholder="e.g. fielder's name">
+                <div id="dfPreview" class="correction-preview"></div>
+                <button id="btnApplyDismissalFix" class="modal-btn confirm">Apply Fix</button>
+            </div>
+            <button id="btnCancelDismissalFix" class="modal-btn cancel">Cancel</button>
         </div>
     </div>
 
@@ -397,6 +510,7 @@
             <button id="tabScorecard" class="tab-btn">Scorecard</button>
         </div>
         <button id="btnGoLive" class="go-live-btn">📡 Go Live</button>
+        <button id="btnOpenCorrections" class="corrections-btn" title="Fix a name, misattributed deliveries, or a dismissal">🛠</button>
         <button id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme">☀️</button>
     </nav>
 
@@ -641,6 +755,7 @@ let match = {
     queue: { newBatter: false, newBowler: false, overSummaryPending: false, ignoreInningsPrompt: false, ignoreMatchPrompt: false },
     pendingOverSummary: null,
     isLive: false, liveShareId: null, liveSharePin: null,
+    editHistory: [],
     innings: 1, target: null, targetOvers: 20,
     runs: 0, wickets: 0, totalLegalBalls: 0,
     battingTeam: 'A', fieldingTeam: 'B',
@@ -909,6 +1024,473 @@ function stopLiveSharing() {
     syncToCloud(); // still autosaves locally even though cloud posting is now skipped
 }
 
+function stopLiveSharing() {
+    if (!confirm('Stop sharing this match live? Anyone watching will stop receiving updates.')) return;
+    match.isLive = false;
+    updateGoLiveButton();
+    $('goLiveModal').classList.add('hidden');
+    showToast('Live sharing stopped.');
+    syncToCloud(); // still autosaves locally even though cloud posting is now skipped
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CORRECTIONS — fixing mistakes made during scoring.
+//  Kept deliberately separate from normal scoring flow. Every
+//  correction routes through saveState() (so Undo works on it like
+//  any other action) and gets logged to match.editHistory.
+// ═══════════════════════════════════════════════════════════
+function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+}
+
+function logCorrection(summary) {
+    match.editHistory.push({ time: Date.now(), summary });
+}
+
+function renderCorrectionsHistory() {
+    const list = $('correctionsHistoryList');
+    if (!match.editHistory.length) { list.innerHTML = '<div class="corrections-history-empty">No corrections made yet.</div>'; return; }
+    list.innerHTML = match.editHistory.slice().reverse().map(e =>
+        `<div class="corrections-history-item">${e.summary}<span class="chi-time">${new Date(e.time).toLocaleTimeString()}</span></div>`
+    ).join('');
+}
+
+function openCorrectionsScreen() {
+    renderCorrectionsHistory();
+    $('correctionsModal').classList.remove('hidden');
+}
+
+function battingTeamForInnings(inningsNum) {
+    if (!match.firstInnings) return match.battingTeam; // still in innings 1, no transition recorded yet
+    return inningsNum === 1 ? match.firstInnings.team : (match.firstInnings.team === 'A' ? 'B' : 'A');
+}
+
+// Renames a player everywhere in the match: roster, every log field
+// (batter, bowler, desc, wicket.outPlayer, wicket.dismissalInfo,
+// wicket.fielder), and every other player's own dismissalInfo text
+// that might mention them (as a fielder/bowler). Word-boundary safe,
+// so "Sam" -> "Samuel" can never eat into "Samantha", and "Player 1"
+// can never eat into "Player 11" — the exact bug we hit doing this by
+// hand earlier.
+function renameEverywhere(oldName, newName) {
+    let count = 0;
+    const escapedOld = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('\\b' + escapedOld + '\\b', 'g');
+
+    function fixString(s) {
+        if (typeof s !== 'string') return s;
+        let matched = false;
+        const result = s.replace(re, () => { matched = true; return newName; });
+        if (matched) count++;
+        return result;
+    }
+
+    function walkMutate(obj) {
+        if (obj === null || typeof obj !== 'object') return;
+        if (Array.isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) {
+                if (typeof obj[i] === 'string') obj[i] = fixString(obj[i]);
+                else walkMutate(obj[i]);
+            }
+        } else {
+            for (const k in obj) {
+                if (typeof obj[k] === 'string') obj[k] = fixString(obj[k]);
+                else walkMutate(obj[k]);
+            }
+        }
+    }
+
+    walkMutate(match.teams);
+    walkMutate(match.log);
+    return count;
+}
+
+function countPlayerLogAppearances(name) {
+    let asBatter = 0, asBowler = 0;
+    match.log.forEach(l => {
+        if (l.batter === name) asBatter++;
+        if (l.bowler === name) asBowler++;
+    });
+    return { asBatter, asBowler };
+}
+
+// --- RENAME TOOL ---
+function openRenameCorrectionTool() {
+    $('correctionsModal').classList.add('hidden');
+    populateRenameTeamPlayers();
+    $('rcNewName').value = '';
+    $('rcWarning').classList.add('hidden');
+    $('renameToolModal').classList.remove('hidden');
+}
+
+function populateRenameTeamPlayers() {
+    const team = $('rcTeamSelect').value;
+    const players = match.teams[team].players;
+    $('rcPlayerSelect').innerHTML = players.map((p, i) => `<option value="${i}">${escHtml(p.name)}</option>`).join('');
+    updateRenamePreview();
+}
+
+function updateRenamePreview() {
+    const team = $('rcTeamSelect').value;
+    const idx = parseInt($('rcPlayerSelect').value);
+    const player = match.teams[team].players[idx];
+    if (!player) return;
+    const counts = countPlayerLogAppearances(player.name);
+    $('rcPreview').textContent = `${player.name}: ${counts.asBatter} delivery(s) as batter, ${counts.asBowler} as bowler will be updated.`;
+    checkRenameCollision();
+}
+
+function checkRenameCollision() {
+    const team = $('rcTeamSelect').value;
+    const idx = parseInt($('rcPlayerSelect').value);
+    const newName = $('rcNewName').value.trim();
+    const warnEl = $('rcWarning');
+    if (!newName) { warnEl.classList.add('hidden'); return; }
+    const currentPlayer = match.teams[team].players[idx];
+    const collision = match.teams[team].players.some(p => p !== currentPlayer && p.name.toLowerCase() === newName.toLowerCase());
+    if (collision) {
+        warnEl.textContent = `⚠ "${newName}" is already another player's name on this team. Renaming to this would make them indistinguishable in the log — only continue if that's genuinely intentional.`;
+        warnEl.classList.remove('hidden');
+    } else {
+        warnEl.classList.add('hidden');
+    }
+}
+
+function applyRenameCorrection() {
+    const team = $('rcTeamSelect').value;
+    const idx = parseInt($('rcPlayerSelect').value);
+    const player = match.teams[team].players[idx];
+    const newName = $('rcNewName').value.trim();
+    if (!newName) { showToast('Enter a new name'); return; }
+    if (newName === player.name) { showToast('That\u2019s already their name'); return; }
+
+    if (!confirm(`Rename "${player.name}" to "${newName}" everywhere in this match?`)) return;
+
+    saveState();
+    const oldName = player.name;
+    const count = renameEverywhere(oldName, newName);
+    logCorrection(`Renamed "${escHtml(oldName)}" to "${escHtml(newName)}" — ${count} reference(s) updated.`);
+
+    $('renameToolModal').classList.add('hidden');
+    updateDashboard(); renderLog();
+    if (match.wagonEnabled) { drawWagonCanvas(); populateWagonPlayerSelect(); }
+    showToast(`Renamed to ${newName}`);
+    syncToCloud();
+}
+
+// --- REASSIGN DELIVERIES TOOL ---
+let reassignSelectedDeliveries = [];
+
+function openReassignTool() {
+    $('correctionsModal').classList.add('hidden');
+    reassignSelectedDeliveries = [];
+    populateReassignTeamPlayers();
+    $('reassignToolModal').classList.remove('hidden');
+}
+
+function populateReassignTeamPlayers() {
+    const role = $('raRoleSelect').value;
+    const team = $('raTeamSelect').value;
+    const players = match.teams[team].players;
+    const relevant = players.filter(p => role === 'batter' ? p.hasBatted : ((p.bowlBalls || 0) > 0 || (p.bowlRuns || 0) > 0));
+    $('raFromPlayerSelect').innerHTML = relevant.length
+        ? relevant.map(p => `<option value="${players.indexOf(p)}">${escHtml(p.name)}</option>`).join('')
+        : `<option value="">-- No players --</option>`;
+    populateReassignDeliveryList();
+}
+
+function populateReassignToPlayers() {
+    const team = $('raTeamSelect').value;
+    const fromIdx = parseInt($('raFromPlayerSelect').value);
+    const players = match.teams[team].players;
+    let options = players.map((p, i) => i !== fromIdx ? `<option value="${i}">${escHtml(p.name)}</option>` : '').join('');
+    options += `<option value="__new__">+ Add New Player...</option>`;
+    $('raToPlayerSelect').innerHTML = options;
+}
+
+function populateReassignDeliveryList() {
+    reassignSelectedDeliveries = [];
+    const role = $('raRoleSelect').value;
+    const team = $('raTeamSelect').value;
+    const fromIdx = parseInt($('raFromPlayerSelect').value);
+    const listEl = $('raDeliveryList');
+    const labelEl = $('raDeliveryLabel');
+
+    if (isNaN(fromIdx)) { listEl.innerHTML = ''; labelEl.textContent = ''; $('raPreview').textContent = ''; return; }
+    const fromPlayer = match.teams[team].players[fromIdx];
+
+    if (role === 'batter') {
+        labelEl.textContent = `Select the ball(s) to move (currently: ${fromPlayer.name})`;
+        const relevant = match.log.filter(l => l.batter === fromPlayer.name && (l.type === 'ball' || l.type === 'wicket'));
+        listEl.innerHTML = relevant.length ? relevant.map(l => {
+            const tag = l.isWicket ? 'W' : (l.runsOffBat != null ? l.runsOffBat : (l.extras ? l.extras.type : '0'));
+            return `<div class="delivery-row"><input type="checkbox" data-id="${l.id}"><span class="dr-desc">Over ${l.over} — ${escHtml(l.desc || '')}</span><span class="dr-tag">${escHtml(tag)}</span></div>`;
+        }).join('') : '<div style="padding:12px; color:var(--text-dim); font-size:0.85em;">No deliveries found.</div>';
+    } else {
+        labelEl.textContent = `Select the over(s) to move (currently: ${fromPlayer.name})`;
+        const overs = {};
+        match.log.forEach(l => {
+            if (l.bowler === fromPlayer.name && (l.type === 'ball' || l.type === 'wicket')) {
+                const overNum = Math.floor(parseFloat(l.over));
+                if (!overs[overNum]) overs[overNum] = [];
+                overs[overNum].push(l);
+            }
+        });
+        const overKeys = Object.keys(overs).sort((a, b) => a - b);
+        listEl.innerHTML = overKeys.length ? overKeys.map(overNum => {
+            const balls = overs[overNum];
+            const runs = balls.reduce((s, l) => {
+                const isWideOrNb = l.extras && (l.extras.type === 'Wide' || l.extras.type === 'No Ball');
+                return s + (l.runsOffBat || 0) + (isWideOrNb ? (l.extras.amount || 0) : 0);
+            }, 0);
+            return `<div class="delivery-row"><input type="checkbox" data-over="${overNum}"><span class="dr-desc">Over ${parseInt(overNum) + 1} — ${balls.length} ball(s), ${runs} run(s)</span></div>`;
+        }).join('') : '<div style="padding:12px; color:var(--text-dim); font-size:0.85em;">No overs found.</div>';
+    }
+
+    listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+            cb.closest('.delivery-row').classList.toggle('selected', cb.checked);
+            updateReassignSelection();
+        });
+    });
+
+    populateReassignToPlayers();
+    updateReassignSelection();
+}
+
+function updateReassignSelection() {
+    const role = $('raRoleSelect').value;
+    const team = $('raTeamSelect').value;
+    const fromIdx = parseInt($('raFromPlayerSelect').value);
+    const checked = [...document.querySelectorAll('#raDeliveryList input:checked')];
+
+    if (role === 'batter') {
+        reassignSelectedDeliveries = checked.map(cb => cb.dataset.id);
+        const entries = match.log.filter(l => reassignSelectedDeliveries.includes(l.id));
+        const runs = entries.reduce((s, l) => s + (l.runsOffBat || 0), 0);
+        $('raPreview').textContent = entries.length ? `${entries.length} ball(s) selected — ${runs} run(s) off the bat.` : 'No balls selected yet.';
+    } else {
+        reassignSelectedDeliveries = checked.map(cb => cb.dataset.over);
+        if (!isNaN(fromIdx)) {
+            const fromName = match.teams[team].players[fromIdx].name;
+            const entries = match.log.filter(l => l.bowler === fromName && reassignSelectedDeliveries.includes(String(Math.floor(parseFloat(l.over)))));
+            $('raPreview').textContent = entries.length ? `${reassignSelectedDeliveries.length} over(s) selected — ${entries.length} ball(s) total. Maiden counts are not auto-adjusted — check those manually if relevant.` : 'No overs selected yet.';
+        }
+    }
+}
+
+function applyReassignCorrection() {
+    const role = $('raRoleSelect').value;
+    const team = $('raTeamSelect').value;
+    const fromIdx = parseInt($('raFromPlayerSelect').value);
+    if (isNaN(fromIdx)) { showToast('Select a player first'); return; }
+    const fromPlayer = match.teams[team].players[fromIdx];
+    let toValue = $('raToPlayerSelect').value;
+
+    if (!reassignSelectedDeliveries.length) { showToast('Select at least one delivery/over first'); return; }
+
+    if (toValue === '__new__') {
+        const name = prompt('Enter the new player\u2019s name:');
+        if (!name || !name.trim()) return;
+        match.teams[team].players.push({
+            name: name.trim(), runs: 0, balls: 0, fours: 0, sixes: 0, isOut: false, hasBatted: false,
+            dismissalInfo: '', timeIn: null, timeOut: null, mins: null,
+            bowlRuns: 0, bowlBalls: 0, bowlMaidens: 0, bowlWickets: 0, bowlWides: 0, bowlNoBalls: 0
+        });
+        toValue = String(match.teams[team].players.length - 1);
+    }
+    const toIdx = parseInt(toValue);
+    if (toIdx === fromIdx) { showToast('Choose a different player to move to'); return; }
+    const toPlayer = match.teams[team].players[toIdx];
+
+    if (!confirm(`Move ${reassignSelectedDeliveries.length} ${role === 'batter' ? 'ball(s)' : 'over(s)'} from ${fromPlayer.name} to ${toPlayer.name}?`)) return;
+
+    saveState();
+    if (role === 'batter') applyBatterReassignment(fromPlayer, toPlayer, toIdx, reassignSelectedDeliveries);
+    else applyBowlerReassignment(fromPlayer, toPlayer, reassignSelectedDeliveries.map(Number));
+
+    $('reassignToolModal').classList.add('hidden');
+    updateDashboard(); renderLog();
+    if (match.wagonEnabled) { drawWagonCanvas(); populateWagonPlayerSelect(); }
+    showToast('Reassignment applied');
+    syncToCloud();
+}
+
+function applyBatterReassignment(fromPlayer, toPlayer, toIdx, ballIds) {
+    let movedRuns = 0, movedBalls = 0, movedFours = 0, movedSixes = 0;
+
+    match.log.forEach(l => {
+        if (!ballIds.includes(l.id) || l.batter !== fromPlayer.name) return;
+        const isWide = l.extras && l.extras.type === 'Wide';
+        const runs = l.runsOffBat || 0;
+
+        l.batter = toPlayer.name;
+        if (l.desc) l.desc = l.desc.split(fromPlayer.name).join(toPlayer.name);
+        if (l.wagon) l.wagon.batterIdx = toIdx;
+        if (l.wicket && l.wicket.outPlayer === fromPlayer.name) l.wicket.outPlayer = toPlayer.name;
+
+        movedRuns += runs;
+        if (!isWide) movedBalls++;
+        if (runs === 4) movedFours++;
+        if (runs === 6) movedSixes++;
+    });
+
+    fromPlayer.runs = (fromPlayer.runs || 0) - movedRuns;
+    fromPlayer.balls = (fromPlayer.balls || 0) - movedBalls;
+    fromPlayer.fours = (fromPlayer.fours || 0) - movedFours;
+    fromPlayer.sixes = (fromPlayer.sixes || 0) - movedSixes;
+    toPlayer.runs = (toPlayer.runs || 0) + movedRuns;
+    toPlayer.balls = (toPlayer.balls || 0) + movedBalls;
+    toPlayer.fours = (toPlayer.fours || 0) + movedFours;
+    toPlayer.sixes = (toPlayer.sixes || 0) + movedSixes;
+    toPlayer.hasBatted = true;
+
+    const movedWicket = match.log.find(l => ballIds.includes(l.id) && l.isWicket && l.wicket && l.wicket.outPlayer === toPlayer.name);
+    if (movedWicket) {
+        fromPlayer.isOut = false; fromPlayer.dismissalInfo = '';
+        toPlayer.isOut = true; toPlayer.dismissalInfo = movedWicket.wicket.dismissalInfo || '';
+    }
+
+    logCorrection(`Reassigned ${ballIds.length} ball(s) (batting) from "${escHtml(fromPlayer.name)}" to "${escHtml(toPlayer.name)}" — ${movedRuns} run(s), ${movedBalls} ball(s) moved.`);
+}
+
+function applyBowlerReassignment(fromPlayer, toPlayer, overNumbers) {
+    let movedRuns = 0, movedBalls = 0, movedWickets = 0, movedWides = 0, movedNoBalls = 0;
+
+    match.log.forEach(l => {
+        if (l.bowler !== fromPlayer.name) return;
+        const overNum = Math.floor(parseFloat(l.over));
+        if (!overNumbers.includes(overNum)) return;
+
+        const isWide = l.extras && l.extras.type === 'Wide';
+        const isNoBall = l.extras && l.extras.type === 'No Ball';
+        const runsOffBat = l.runsOffBat || 0;
+        const extraAmt = l.extras ? (l.extras.amount || 0) : 0;
+        let runsAgainstBowler = runsOffBat;
+        if (isWide || isNoBall) runsAgainstBowler += extraAmt;
+
+        l.bowler = toPlayer.name;
+        if (l.desc) l.desc = l.desc.split(fromPlayer.name).join(toPlayer.name);
+
+        movedRuns += runsAgainstBowler;
+        if (!isWide && !isNoBall) movedBalls++;
+        if (isWide) movedWides++;
+        if (isNoBall) movedNoBalls++;
+        if (l.isWicket && l.wicket && l.wicket.type !== 'Run Out') movedWickets++;
+    });
+
+    fromPlayer.bowlRuns = (fromPlayer.bowlRuns || 0) - movedRuns;
+    fromPlayer.bowlBalls = (fromPlayer.bowlBalls || 0) - movedBalls;
+    fromPlayer.bowlWickets = (fromPlayer.bowlWickets || 0) - movedWickets;
+    fromPlayer.bowlWides = (fromPlayer.bowlWides || 0) - movedWides;
+    fromPlayer.bowlNoBalls = (fromPlayer.bowlNoBalls || 0) - movedNoBalls;
+    toPlayer.bowlRuns = (toPlayer.bowlRuns || 0) + movedRuns;
+    toPlayer.bowlBalls = (toPlayer.bowlBalls || 0) + movedBalls;
+    toPlayer.bowlWickets = (toPlayer.bowlWickets || 0) + movedWickets;
+    toPlayer.bowlWides = (toPlayer.bowlWides || 0) + movedWides;
+    toPlayer.bowlNoBalls = (toPlayer.bowlNoBalls || 0) + movedNoBalls;
+    if (toPlayer.bowlMaidens === undefined) toPlayer.bowlMaidens = 0;
+
+    // Maiden counts are deliberately left untouched — a reliable per-over
+    // recompute would need more careful handling than is worth the risk
+    // here. Flagged in the correction log so it's not silently wrong.
+    logCorrection(`Reassigned ${overNumbers.length} over(s) (bowling) from "${escHtml(fromPlayer.name)}" to "${escHtml(toPlayer.name)}" — ${movedRuns} run(s), ${movedBalls} ball(s) moved. Maiden counts weren't adjusted — check those manually if relevant.`);
+}
+
+// --- FIX A DISMISSAL TOOL ---
+let dfSelectedBallId = null;
+
+function openDismissalFixTool() {
+    $('correctionsModal').classList.add('hidden');
+    dfSelectedBallId = null;
+    $('dfEditArea').classList.add('hidden');
+    populateDismissalWicketList();
+    $('dismissalToolModal').classList.remove('hidden');
+}
+
+function populateDismissalWicketList() {
+    const wickets = match.log.filter(l => l.isWicket && l.wicket);
+    const listEl = $('dfWicketList');
+    listEl.innerHTML = wickets.length
+        ? wickets.map(l => `<div class="delivery-row"><input type="radio" name="dfWicketRadio" data-id="${l.id}"><span class="dr-desc">Over ${l.over} — ${escHtml(l.wicket.dismissalInfo || l.wicket.type || '')}</span></div>`).join('')
+        : '<div style="padding:12px; color:var(--text-dim); font-size:0.85em;">No wickets recorded yet.</div>';
+
+    listEl.querySelectorAll('input[type="radio"]').forEach(rb => {
+        rb.addEventListener('change', () => {
+            listEl.querySelectorAll('.delivery-row').forEach(r => r.classList.remove('selected'));
+            rb.closest('.delivery-row').classList.add('selected');
+            openDismissalEditForBall(rb.dataset.id);
+        });
+    });
+}
+
+function buildDismissalText(type, bowler, fielder) {
+    if (type === 'Bowled') return `b ${bowler}`;
+    if (type === 'Caught') return `c ${fielder || '?'} b ${bowler}`;
+    if (type === 'LBW') return `lbw b ${bowler}`;
+    if (type === 'Stumped') return `st ${fielder || '?'} b ${bowler}`;
+    if (type === 'Run Out') return `Run Out${fielder ? ' (' + fielder + ')' : ''}`;
+    if (type === 'Hit Wicket') return `hit wicket b ${bowler}`;
+    return type;
+}
+
+function openDismissalEditForBall(ballId) {
+    dfSelectedBallId = ballId;
+    const l = match.log.find(x => x.id === ballId);
+    if (!l || !l.wicket) return;
+    const teamKey = battingTeamForInnings(l.innings || 1);
+    const players = match.teams[teamKey].players;
+
+    $('dfTypeSelect').innerHTML = ['Bowled', 'Caught', 'LBW', 'Run Out', 'Stumped', 'Hit Wicket', 'Retired Out']
+        .map(t => `<option value="${t}" ${t === l.wicket.type ? 'selected' : ''}>${t}</option>`).join('');
+    $('dfOutPlayerSelect').innerHTML = players.map((p, i) => `<option value="${i}" ${p.name === l.wicket.outPlayer ? 'selected' : ''}>${escHtml(p.name)}</option>`).join('');
+    $('dfFielderInput').value = l.wicket.fielder || '';
+    updateDismissalPreview();
+    $('dfEditArea').classList.remove('hidden');
+}
+
+function updateDismissalPreview() {
+    const l = match.log.find(x => x.id === dfSelectedBallId);
+    if (!l) return;
+    const teamKey = battingTeamForInnings(l.innings || 1);
+    const newOutPlayer = match.teams[teamKey].players[parseInt($('dfOutPlayerSelect').value)];
+    const text = buildDismissalText($('dfTypeSelect').value, l.bowler, $('dfFielderInput').value.trim());
+    $('dfPreview').textContent = `Will show as: "${newOutPlayer.name} — ${text}"`;
+}
+
+function applyDismissalFix() {
+    const l = match.log.find(x => x.id === dfSelectedBallId);
+    if (!l || !l.wicket) return;
+    const teamKey = battingTeamForInnings(l.innings || 1);
+    const players = match.teams[teamKey].players;
+    const oldOutPlayer = players.find(p => p.name === l.wicket.outPlayer);
+    const newOutPlayer = players[parseInt($('dfOutPlayerSelect').value)];
+    const newType = $('dfTypeSelect').value;
+    const fielder = $('dfFielderInput').value.trim();
+    const text = buildDismissalText(newType, l.bowler, fielder);
+
+    if (!confirm('Apply this dismissal fix?')) return;
+    saveState();
+
+    l.wicket.type = newType;
+    l.wicket.outPlayer = newOutPlayer.name;
+    l.wicket.fielder = fielder;
+    l.wicket.dismissalInfo = text;
+    if (l.desc) l.desc = `WICKET! ${newOutPlayer.name} \u2014 ${text}`;
+
+    if (oldOutPlayer && oldOutPlayer !== newOutPlayer) { oldOutPlayer.isOut = false; oldOutPlayer.dismissalInfo = ''; }
+    newOutPlayer.isOut = true; newOutPlayer.dismissalInfo = text;
+
+    logCorrection(`Fixed dismissal at over ${l.over}: now credited to "${escHtml(newOutPlayer.name)}" \u2014 ${escHtml(text)}`);
+
+    $('dismissalToolModal').classList.add('hidden');
+    updateDashboard(); renderLog();
+    showToast('Dismissal updated');
+    syncToCloud();
+}
+
 function triggerAutoDownload(label) {
     const filename = `Scorebook_${match.teams.A.name}_vs_${match.teams.B.name}_${label}_(${match.dateString.replace(/\//g, '-')}).json`;
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(match));
@@ -927,11 +1509,14 @@ function triggerAutoDownload(label) {
 function triggerNextActionQueue() {
     updateControlStates();
 
+    // Pending wagon shots get mapped first — before the over recap, and
+    // before offering the next bowler — so the shot map for the over is
+    // already complete by the time it's being reviewed/reconciled.
+    if (match.wagonEnabled && match.log.some(x => x.wagon && x.wagon.mapStatus === 'pending')) return;
+
     // Always-on checkpoint: recap the over just completed before offering
     // anything else, so it can be reconciled before moving on.
     if (match.queue.overSummaryPending) { openOverSummaryModal(); return; }
-
-    if (match.wagonEnabled && match.log.some(x => x.wagon && x.wagon.mapStatus === 'pending')) return;
 
     const maxWickets = match.maxWickets !== undefined ? match.maxWickets : 10;
     const allOut = match.wickets >= maxWickets;
@@ -1115,11 +1700,27 @@ function confirmRename() {
     if (!renameTarget) return;
     const newName = $('renameInput').value.trim();
     if (!newName) { showToast('Name cannot be empty'); return; }
-    match.teams[renameTarget.teamKey].players[renameTarget.idx].name = newName;
+    const { teamKey, idx } = renameTarget;
+    const player = match.teams[teamKey].players[idx];
+    const oldName = player.name;
+    if (newName === oldName) { renameTarget = null; $('renameModal').classList.add('hidden'); return; }
+
+    const collision = match.teams[teamKey].players.some((p, i) => i !== idx && p.name.toLowerCase() === newName.toLowerCase());
+    if (collision) {
+        const proceed = confirm(`"${newName}" is already another player's name on this team. The log can't tell two same-named players apart — continue anyway?`);
+        if (!proceed) return;
+    }
+
+    saveState();
+    const count = renameEverywhere(oldName, newName);
+    if (!Array.isArray(match.editHistory)) match.editHistory = [];
+    match.editHistory.push({ time: Date.now(), summary: `Renamed "${oldName}" to "${newName}" — ${count} reference(s) updated.` });
+
     renameTarget = null;
     $('renameModal').classList.add('hidden');
     updateDashboard(); renderLog();
-    showToast('Name updated. Earlier log entries keep the previous name.');
+    if (match.wagonEnabled) { drawWagonCanvas(); populateWagonPlayerSelect(); }
+    showToast(`Renamed to ${newName} — updated everywhere in the match.`);
     syncToCloud();
 }
 
@@ -1189,6 +1790,7 @@ function logEvent(desc, overrideBc = null, wagonPayload = null, struct = {}) {
     
     match.log.push({ 
         id: bId, type: struct.type || baseType, over: fmtLog(bc), desc, 
+        innings: match.innings,
         wagon: wagonPayload, teamRuns: match.runs, teamWickets: match.wickets, ...struct 
     });
     if (wagonPayload && wagonPayload.mapStatus === 'pending') setActiveWagonBall(bId);
@@ -1734,6 +2336,10 @@ function setWagonView(mode) {
 function getWagonShotLogs(onlyMapped) {
     return match.log.filter(l => {
         if (!l.wagon) return false;
+        // Entries logged before this innings-tagging fix shipped won't
+        // have an `innings` field — treat those as innings 1 (the only
+        // possibility for untagged data) rather than excluding them.
+        if ((l.innings || 1) !== match.innings) return false;
         if (onlyMapped && l.wagon.mapStatus !== 'mapped') return false;
         if (wagonViewMode === 'player' && wagonSelectedPlayerIdx !== '' && wagonSelectedPlayerIdx !== '__all__') {
             if (String(l.wagon.batterIdx) !== String(wagonSelectedPlayerIdx)) return false;
@@ -1824,7 +2430,7 @@ function setActiveWagonBall(id) {
 function updateWagonQueueUI() {
     const box = $('wqBox');
     if (!box) return;
-    const pending = match.log.filter(l => l.wagon && l.wagon.mapStatus === 'pending');
+    const pending = match.log.filter(l => l.wagon && l.wagon.mapStatus === 'pending' && (l.innings || 1) === match.innings);
 
     if (!activeWagonBallId && pending.length) {
         activeWagonBallId = pending[0].id;
@@ -1924,6 +2530,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (match.isLive === undefined) match.isLive = false;
                 if (match.liveShareId === undefined) match.liveShareId = null;
                 if (match.liveSharePin === undefined) match.liveSharePin = null;
+                if (!Array.isArray(match.editHistory)) match.editHistory = [];
                 if (typeof match.freeHit !== 'boolean') match.freeHit = false;
                 if (typeof match.enableFreeHit !== 'boolean') match.enableFreeHit = true;
                 if (match.maxWickets === undefined) match.maxWickets = 10;
@@ -1977,6 +2584,35 @@ function wireUpEvents() {
     $('btnGoLive').addEventListener('click', openGoLiveModal);
     $('btnStopLive').addEventListener('click', stopLiveSharing);
     $('btnCloseLiveModal').addEventListener('click', () => $('goLiveModal').classList.add('hidden'));
+
+    // Corrections entry point + menu
+    $('btnOpenCorrections').addEventListener('click', openCorrectionsScreen);
+    $('btnCloseCorrections').addEventListener('click', () => $('correctionsModal').classList.add('hidden'));
+    $('optRename').addEventListener('click', openRenameCorrectionTool);
+    $('optReassign').addEventListener('click', openReassignTool);
+    $('optDismissal').addEventListener('click', openDismissalFixTool);
+
+    // Rename tool
+    $('rcTeamSelect').addEventListener('change', populateRenameTeamPlayers);
+    $('rcPlayerSelect').addEventListener('change', updateRenamePreview);
+    $('rcNewName').addEventListener('input', checkRenameCollision);
+    $('btnApplyRename').addEventListener('click', applyRenameCorrection);
+    $('btnCancelRename').addEventListener('click', () => { $('renameToolModal').classList.add('hidden'); openCorrectionsScreen(); });
+
+    // Reassign tool
+    $('raRoleSelect').addEventListener('change', populateReassignTeamPlayers);
+    $('raTeamSelect').addEventListener('change', populateReassignTeamPlayers);
+    $('raFromPlayerSelect').addEventListener('change', populateReassignDeliveryList);
+    $('raToPlayerSelect').addEventListener('change', updateReassignSelection);
+    $('btnApplyReassign').addEventListener('click', applyReassignCorrection);
+    $('btnCancelReassign').addEventListener('click', () => { $('reassignToolModal').classList.add('hidden'); openCorrectionsScreen(); });
+
+    // Dismissal fix tool
+    $('dfTypeSelect').addEventListener('change', updateDismissalPreview);
+    $('dfOutPlayerSelect').addEventListener('change', updateDismissalPreview);
+    $('dfFielderInput').addEventListener('input', updateDismissalPreview);
+    $('btnApplyDismissalFix').addEventListener('click', applyDismissalFix);
+    $('btnCancelDismissalFix').addEventListener('click', () => { $('dismissalToolModal').classList.add('hidden'); openCorrectionsScreen(); });
     $('btnCancelAction').addEventListener('click', () => {$('confirmModal').classList.add('hidden'); const cb = confirmCancelCallback; confirmActionCallback = null; confirmCancelCallback = null; if (cb) cb(); });
 
     $('btnOpenPrintMenu').addEventListener('click', () => { populatePrintExtras();$('printConfigModal').classList.remove('hidden'); });
