@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Digital Scorebook v3.8</title>
+    <title>Digital Scorebook v3.9</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -837,7 +837,7 @@ function generateNameInputs() {
             const inp = document.createElement('input');
             inp.type = 'text';
             inp.id = `player${teamKey}_${i}`;
-            inp.placeholder = `Player ${i + 1}`;
+            inp.placeholder = `${teamKey} Player ${i + 1}`;
             inp.value = existing[i] || '';
             container.appendChild(inp);
         }
@@ -861,7 +861,7 @@ function startMatch() {
     const buildRoster = teamKey => {
         const inputs = [...$(teamKey === 'A' ? 'teamAList' : 'teamBList').querySelectorAll('input')];
         return inputs.map((inp, i) => ({
-            name: inp.value.trim() || `Player ${i + 1}`,
+            name: inp.value.trim() || `${teamKey} Player ${i + 1}`,
             runs: 0, balls: 0, fours: 0, sixes: 0,
             isOut: false, hasBatted: false, dismissalInfo: null,
             timeIn: null, timeOut: null, mins: null,
@@ -1074,36 +1074,58 @@ function battingTeamForInnings(inningsNum) {
 // so "Sam" -> "Samuel" can never eat into "Samantha", and "Player 1"
 // can never eat into "Player 11" — the exact bug we hit doing this by
 // hand earlier.
-function renameEverywhere(oldName, newName) {
+// Renames a player everywhere in the match, scoped to their own team.
+// This matters because BOTH teams can independently default to the
+// exact same placeholder names ("Player 1", "Player 2", ...) — without
+// team-scoping, renaming Team A's "Player 1" would also silently rename
+// Team B's unrelated "Player 1" (e.g. a bowler) to the same new name.
+// Word-boundary safe throughout, so "Player 1" can never eat into
+// "Player 11", and a real name like "Sam" can't eat into "Samantha".
+function renameEverywhere(teamKey, oldName, newName) {
     let count = 0;
     const escapedOld = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const re = new RegExp('\\b' + escapedOld + '\\b', 'g');
 
     function fixString(s) {
-        if (typeof s !== 'string') return s;
-        let matched = false;
-        const result = s.replace(re, () => { matched = true; return newName; });
-        if (matched) count++;
-        return result;
+        return typeof s === 'string' ? s.replace(re, newName) : s;
     }
 
-    function walkMutate(obj) {
-        if (obj === null || typeof obj !== 'object') return;
-        if (Array.isArray(obj)) {
-            for (let i = 0; i < obj.length; i++) {
-                if (typeof obj[i] === 'string') obj[i] = fixString(obj[i]);
-                else walkMutate(obj[i]);
-            }
-        } else {
-            for (const k in obj) {
-                if (typeof obj[k] === 'string') obj[k] = fixString(obj[k]);
-                else walkMutate(obj[k]);
-            }
+    // Roster: only this team's own players.
+    match.teams[teamKey].players.forEach(p => {
+        if (p.name === oldName) p.name = newName;
+        if (p.dismissalInfo) p.dismissalInfo = fixString(p.dismissalInfo);
+    });
+
+    // Log: only touch a role if that role actually belonged to teamKey
+    // for that specific delivery's innings (batter = batting team,
+    // bowler/fielder = the other, fielding team).
+    match.log.forEach(l => {
+        const inningsNum = l.innings || match.innings || 1;
+        const battingTeam = battingTeamForInnings(inningsNum);
+        const bowlingTeam = battingTeam === 'A' ? 'B' : 'A';
+
+        if (l.type === 'summary') {
+            if (bowlingTeam === teamKey && l.desc) l.desc = fixString(l.desc);
+            return;
         }
-    }
 
-    walkMutate(match.teams);
-    walkMutate(match.log);
+        const isBatterRole = l.batter === oldName && battingTeam === teamKey;
+        const isBowlerRole = l.bowler === oldName && bowlingTeam === teamKey;
+        const isFielderRole = l.wicket && l.wicket.fielder === oldName && bowlingTeam === teamKey;
+
+        if (isBatterRole) {
+            l.batter = newName; count++;
+            if (l.wicket && l.wicket.outPlayer === oldName) l.wicket.outPlayer = newName;
+        }
+        if (isBowlerRole) { l.bowler = newName; count++; }
+        if (isFielderRole) { l.wicket.fielder = newName; count++; }
+
+        if (isBatterRole || isBowlerRole || isFielderRole) {
+            if (l.desc) l.desc = fixString(l.desc);
+            if (l.wicket && l.wicket.dismissalInfo) l.wicket.dismissalInfo = fixString(l.wicket.dismissalInfo);
+        }
+    });
+
     return count;
 }
 
@@ -1170,7 +1192,7 @@ function applyRenameCorrection() {
 
     saveState();
     const oldName = player.name;
-    const count = renameEverywhere(oldName, newName);
+    const count = renameEverywhere(team, oldName, newName);
     logCorrection(`Renamed "${escHtml(oldName)}" to "${escHtml(newName)}" — ${count} reference(s) updated.`);
 
     $('renameToolModal').classList.add('hidden');
@@ -1712,7 +1734,7 @@ function confirmRename() {
     }
 
     saveState();
-    const count = renameEverywhere(oldName, newName);
+    const count = renameEverywhere(teamKey, oldName, newName);
     if (!Array.isArray(match.editHistory)) match.editHistory = [];
     match.editHistory.push({ time: Date.now(), summary: `Renamed "${oldName}" to "${newName}" — ${count} reference(s) updated.` });
 
